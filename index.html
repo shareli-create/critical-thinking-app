@@ -420,12 +420,14 @@
                   value: studentName,
                   onChange: (e) => setStudentName(e.target.value),
                   placeholder: 'Enter your full name',
+                  autoComplete: 'name',
                   style: { 
                     width: '100%', 
                     padding: '10px', 
                     border: '1px solid #ddd', 
                     borderRadius: '4px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
                   }
                 })
               ),
@@ -437,12 +439,14 @@
                   value: studentEmail,
                   onChange: (e) => setStudentEmail(e.target.value),
                   placeholder: 'Enter your email address',
+                  autoComplete: 'email',
                   style: { 
                     width: '100%', 
                     padding: '10px', 
                     border: '1px solid #ddd', 
                     borderRadius: '4px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
                   }
                 })
               ),
@@ -457,7 +461,8 @@
                     padding: '10px', 
                     border: '1px solid #ddd', 
                     borderRadius: '4px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
                   }
                 },
                   React.createElement('option', { value: '' }, 'Select your class...'),
@@ -555,7 +560,8 @@
                       width: '100%', 
                       padding: '8px', 
                       border: '1px solid #ddd', 
-                      borderRadius: '4px'
+                      borderRadius: '4px',
+                      boxSizing: 'border-box'
                     }
                   }),
                   uploadedFile && React.createElement('p', {
@@ -741,12 +747,14 @@
                   onChange: (e) => setProfessorPassword(e.target.value),
                   placeholder: 'Enter professor password',
                   onKeyPress: (e) => e.key === 'Enter' && loginProfessor(),
+                  autoFocus: true,
                   style: {
                     width: '100%',
                     padding: '10px',
                     marginBottom: '15px',
                     border: '1px solid #ddd',
-                    borderRadius: '4px'
+                    borderRadius: '4px',
+                    boxSizing: 'border-box'
                   }
                 }),
                 React.createElement('div', {},
