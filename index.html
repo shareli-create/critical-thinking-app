@@ -1,697 +1,555 @@
- <!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Critical Thinking Task System</title>
-      <style>
-          body { margin: 0; font-family: Arial, sans-serif; background-color: #f5f5f5; }
-          .container { min-height: 100vh; padding: 20px; max-width: 600px; margin: 0 auto; }
-          .card { background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px
-  4px rgba(0,0,0,0.1); }
-          .form-group { margin-bottom: 15px; }
-          .form-label { display: block; margin-bottom: 5px; font-weight: bold; }
-          .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
-          .form-input:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); }
-          .btn { padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 10px; }
-          .btn-primary { background-color: #007bff; color: white; }
-          .btn-success { background-color: #28a745; color: white; }
-          .btn-danger { background-color: #dc3545; color: white; }
-          .btn-secondary { background-color: #6c757d; color: white; }
-          .btn:hover { opacity: 0.9; }
-          .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-          .alert { padding: 15px; border-radius: 4px; margin-bottom: 20px; }
-          .alert-success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
-          .alert-warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
-          .alert-info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
-          .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index:
-  1000; }
-          .modal.show { display: flex; align-items: center; justify-content: center; }
-          .modal-content { background-color: white; padding: 30px; border-radius: 8px; min-width: 300px; max-width: 90%; }
-          .table { width: 100%; border-collapse: collapse; background-color: white; margin-top: 20px; }
-          .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          .table th { background-color: #f8f9fa; font-weight: bold; }
-          .table tr:nth-child(even) { background-color: #f9f9f9; }
-          .status-badge { padding: 2px 6px; border-radius: 3px; font-size: 10px; color: white; }
-          .status-assigned { background-color: #dc3545; }
-          .status-downloaded { background-color: #ffc107; color: #212529; }
-          .status-submitted { background-color: #28a745; }
-          .hidden { display: none; }
-          .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-          .text-center { text-align: center; }
-          .text-small { font-size: 12px; color: #666; }
-          .mb-3 { margin-bottom: 1rem; }
-          .mt-3 { margin-top: 1rem; }
-          h1 { color: #333; margin-bottom: 10px; }
-          h3 { color: #333; margin-bottom: 15px; }
-      </style>
-  </head>
-  <body>
-      <div class="container">
-          <!-- Student Interface -->
-          <div id="studentView">
-              <h1>Critical Thinking Task System</h1>
-              <div class="text-small mb-3">
-                  Press Ctrl+Shift+I for instructor access
-              </div>
-
-              <!-- Get Task Form -->
-              <div id="getTaskSection" class="card">
-                  <h3>Get Your Task Assignment</h3>
-                  <div class="form-group">
-                      <label class="form-label">Full Name:</label>
-                      <input type="text" id="studentName" class="form-input" placeholder="Enter your full name">
-                  </div>
-                  <div class="form-group">
-                      <label class="form-label">Email:</label>
-                      <input type="email" id="studentEmail" class="form-input" placeholder="Enter your email address">
-                  </div>
-                  <div class="form-group">
-                      <label class="form-label">Class Name:</label>
-                      <select id="className" class="form-input">
-                          <option value="">Select your class...</option>
-                      </select>
-                      <div id="noClassesMsg" class="text-small mt-3 hidden">No active classes available. Contact your professor.</div>
-                  </div>
-                  <button onclick="getStudentTask()" class="btn btn-primary" id="getTaskBtn">Get My Task</button>
-              </div>
-
-              <!-- Task Assignment Display -->
-              <div id="taskSection" class="card hidden">
-                  <div class="alert alert-success">
-                      <h3>Your Assigned Task</h3>
-                      <div id="taskDetails"></div>
-                  </div>
-
-                  <!-- Download Section -->
-                  <div id="downloadSection" class="mb-3">
-                      <button onclick="downloadTask()" class="btn btn-success">📥 Download Task File</button>
-                  </div>
-
-                  <!-- Upload Section -->
-                  <div id="uploadSection" class="alert alert-warning hidden">
-                      <h4>Submit Completed Task</h4>
-                      <div class="form-group">
-                          <label class="form-label">Upload your completed task file:</label>
-                          <input type="file" id="fileUpload" class="form-input" accept=".html,.pdf,.doc,.docx,.zip">
-                          <div id="fileInfo" class="text-small mt-3"></div>
-                      </div>
-                      <button onclick="submitTask()" class="btn btn-primary" id="submitBtn" disabled>📤 Submit Task</button>
-                  </div>
-
-                  <!-- Completed Section -->
-                  <div id="completedSection" class="alert alert-info hidden">
-                      <h4>✅ Task Submitted</h4>
-                      <div id="submissionDetails"></div>
-                      <p style="font-style: italic;">Your task has been successfully submitted. Thank you!</p>
-                  </div>
-              </div>
-          </div>
-
-          <!-- Professor Interface -->
-          <div id="professorView" class="hidden">
-              <h1>Professor Dashboard</h1>
-              <button onclick="logoutProfessor()" class="btn btn-danger">Logout</button>
-              <button onclick="toggleCreateClass()" class="btn btn-success" id="createClassToggle">Create New Class</button>
-
-              <!-- Create Class Form -->
-              <div id="createClassSection" class="card hidden">
-                  <h3>Create New Class</h3>
-                  <div class="form-group">
-                      <label class="form-label">Class Name:</label>
-                      <input type="text" id="newClassName" class="form-input" placeholder="e.g., Business Ethics 2025">
-                  </div>
-                  <div class="grid-2">
-                      <div class="form-group">
-                          <label class="form-label">Start Date:</label>
-                          <input type="date" id="newClassStartDate" class="form-input">
-                      </div>
-                      <div class="form-group">
-                          <label class="form-label">End Date:</label>
-                          <input type="date" id="newClassEndDate" class="form-input">
-                      </div>
-                  </div>
-                  <button onclick="createClass()" class="btn btn-success">Create Class</button>
-              </div>
-
-              <!-- Class Management -->
-              <div id="classManagement" class="card">
-                  <h3>Manage Classes</h3>
-                  <div id="classTable"></div>
-              </div>
-
-              <!-- Class Monitoring -->
-              <div id="classMonitoring" class="card hidden">
-                  <h3 id="monitoringTitle">Class Monitoring</h3>
-                  <button onclick="closeMonitoring()" class="btn btn-secondary">Close</button>
-                  <div id="monitoringTable"></div>
-              </div>
-          </div>
-      </div>
-
-      <!-- Professor Login Modal -->
-      <div id="professorModal" class="modal">
-          <div class="modal-content text-center">
-              <h3>Professor Login</h3>
-              <div class="form-group">
-                  <input type="password" id="professorPassword" class="form-input" placeholder="Enter professor password">
-              </div>
-              <button onclick="loginProfessor()" class="btn btn-primary">Login</button>
-              <button onclick="closeProfessorModal()" class="btn btn-secondary">Cancel</button>
-          </div>
-      </div>
-
-      <script>
-          // Global variables
-          let assignments = {};
-          let submissions = [];
-          let classes = {};
-          let currentTask = null;
-          let selectedClass = '';
-          const PROFESSOR_PASSWORD = 'Simba@#1903';
-          // IMPORTANT: PASTE YOUR NEW APPS SCRIPT URL HERE
-          const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbznHVXizg0R92SGH-fV3CzhflOalxMhZ8tHrAtMPcsCsVBO1hfrkEYRGtAbi39C9TeFzg/exec';
-          let availableTasks = [];
-
-          // Load data on page load
-          window.onload = function() {
-              loadData();
-              updateClassDropdown();
-              updateClassManagement();
-              loadTasks();
-
-              // Add keyboard shortcut for professor login
-              document.addEventListener('keydown', function(e) {
-                  if (e.ctrlKey && e.shiftKey && e.code === 'KeyI') {
-                      e.preventDefault();
-                      showProfessorModal();
-                  }
-              });
-
-              // File upload handler
-              document.getElementById('fileUpload').addEventListener('change', function(e) {
-                  const file = e.target.files[0];
-                  const submitBtn = document.getElementById('submitBtn');
-                  const fileInfo = document.getElementById('fileInfo');
-
-                  if (file) {
-                      fileInfo.textContent = Selected: ${file.name} (${Math.round(file.size / 1024)} KB);
-                      submitBtn.disabled = false;
-                  } else {
-                      fileInfo.textContent = '';
-                      submitBtn.disabled = true;
-                  }
-              });
-
-              // Enter key for professor password
-              document.getElementById('professorPassword').addEventListener('keypress', function(e) {
-                  if (e.key === 'Enter') {
-                      loginProfessor();
-                  }
-              });
-          };
-
-          // Load tasks from Google Drive
-          function loadTasks() {
-              fetch(${APPS_SCRIPT_URL}?action=list_tasks)
-                  .then(response => response.json())
-                  .then(data => {
-                      availableTasks = data;
-                  })
-                  .catch(error => {
-                      console.error('Error loading tasks:', error);
-                      alert('Could not load tasks from Google Drive. Please check the Apps Script configuration.');
-                  });
-          }
-
-          // Data management
-          function loadData() {
-              const savedAssignments = localStorage.getItem('taskAssignments');
-              const savedSubmissions = localStorage.getItem('taskSubmissions');
-              const savedClasses = localStorage.getItem('classManagement');
-
-              if (savedAssignments) assignments = JSON.parse(savedAssignments);
-              if (savedSubmissions) submissions = JSON.parse(savedSubmissions);
-              if (savedClasses) classes = JSON.parse(savedClasses);
-          }
-
-          function saveData() {
-              localStorage.setItem('taskAssignments', JSON.stringify(assignments));
-              localStorage.setItem('taskSubmissions', JSON.stringify(submissions));
-              localStorage.setItem('classManagement', JSON.stringify(classes));
-          }
-
-          // Hash function for consistent task assignment
-          function hashString(str) {
-              let hash = 0;
-              for (let i = 0; i < str.length; i++) {
-                  const char = str.charCodeAt(i);
-                  hash = ((hash << 5) - hash) + char;
-                  hash = hash & hash;
-              }
-              return Math.abs(hash);
-          }
-
-          // Check if class is active
-          function isClassActive(className) {
-              const classInfo = classes[className];
-              if (!classInfo) return false;
-
-              const now = new Date();
-              const startDate = new Date(classInfo.startDate);
-              const endDate = new Date(classInfo.endDate);
-
-              return now >= startDate && now <= endDate;
-          }
-
-          // Get active classes
-          function getActiveClasses() {
-              return Object.keys(classes).filter(className => isClassActive(className));
-          }
-
-          // Update class dropdown
-          function updateClassDropdown() {
-              const dropdown = document.getElementById('className');
-              const noClassesMsg = document.getElementById('noClassesMsg');
-              const activeClasses = getActiveClasses();
-
-              dropdown.innerHTML = '<option value="">Select your class...</option>';
-
-              activeClasses.forEach(cls => {
-                  const option = document.createElement('option');
-                  option.value = cls;
-                  option.textContent = cls;
-                  dropdown.appendChild(option);
-              });
-
-              if (activeClasses.length === 0) {
-                  noClassesMsg.classList.remove('hidden');
-                  document.getElementById('getTaskBtn').disabled = true;
-              } else {
-                  noClassesMsg.classList.add('hidden');
-                  document.getElementById('getTaskBtn').disabled = false;
-              }
-          }
-
-          // Student functions
-          function getStudentTask() {
-              const studentName = document.getElementById('studentName').value.trim();
-              const studentEmail = document.getElementById('studentEmail').value.trim();
-              const className = document.getElementById('className').value.trim();
-
-              if (!studentName || !studentEmail || !className) {
-                  alert('Please fill in all fields');
-                  return;
-              }
-
-              if (!classes[className]) {
-                  alert('This class does not exist. Please check the class name with your professor.');
-                  return;
-              }
-
-              if (!isClassActive(className)) {
-                  const classInfo = classes[className];
-                  const startDate = new Date(classInfo.startDate).toLocaleDateString();
-                  const endDate = new Date(classInfo.endDate).toLocaleDateString();
-                  alert(This class is not currently active.\nActive period: ${startDate} - ${endDate});
-                  return;
-              }
-
-              const studentKey = ${className}-${studentEmail};
-
-              // Check if student already has an assignment
-              if (assignments[studentKey]) {
-                  currentTask = assignments[studentKey];
-                  showTaskSection();
-                  return;
-              }
-
-              if (availableTasks.length === 0) {
-                  alert('Tasks are still loading or no tasks are available. Please try again in a moment.');
-                  return;
-              }
-
-              const classAssignments = Object.values(assignments).filter(assignment =>
-                  assignment.className === className
-              );
-              const usedTaskFiles = classAssignments.map(assignment => assignment.studentFile);
-
-              const unassignedTasks = availableTasks.filter(taskFile =>
-                  !usedTaskFiles.includes(taskFile)
-              );
-
-              if (unassignedTasks.length === 0) {
-                  alert('No more tasks available for this class');
-                  return;
-              }
-
-              const hash = hashString(studentEmail);
-              const taskIndex = hash % unassignedTasks.length;
-              const selectedTaskFile = unassignedTasks[taskIndex];
-              const instructorFile = selectedTaskFile.replace('-Student', '-Instructor');
-
-              const assignment = {
-                  studentName: studentName,
-                  studentEmail: studentEmail,
-                  className: className,
-                  studentFile: selectedTaskFile,
-                  instructorFile: instructorFile,
-                  taskId: selectedTaskFile,
-                  assignedAt: new Date().toISOString(),
-                  status: 'assigned',
-                  downloaded: false,
-                  submitted: false,
-                  submittedAt: null,
-                  submittedFileName: null
-              };
-
-              assignments[studentKey] = assignment;
-              currentTask = assignment;
-              saveData();
-              showTaskSection();
-          }
-
-          function showTaskSection() {
-              document.getElementById('getTaskSection').classList.add('hidden');
-              document.getElementById('taskSection').classList.remove('hidden');
-
-              const taskDetails = document.getElementById('taskDetails');
-              taskDetails.innerHTML = `
-                  <p><strong>Student:</strong> ${currentTask.studentName}</p>
-                  <p><strong>Email:</strong> ${currentTask.studentEmail}</p>
-                  <p><strong>Class:</strong> ${currentTask.className}</p>
-                  <p><strong>Task ID:</strong> ${currentTask.taskId}</p>
-                  <p><strong>Assigned:</strong> ${new Date(currentTask.assignedAt).toLocaleString()}</p>
-                  <p><strong>Status:</strong> <span class="status-badge
-  status-${currentTask.status}">${currentTask.status.toUpperCase()}</span></p>
-              `;
-
-              if (currentTask.submitted) {
-                  document.getElementById('downloadSection').classList.add('hidden');
-                  document.getElementById('uploadSection').classList.add('hidden');
-                  document.getElementById('completedSection').classList.remove('hidden');
-
-                  const submissionDetails = document.getElementById('submissionDetails');
-                  submissionDetails.innerHTML = `
-                      <p><strong>Submitted:</strong> ${new Date(currentTask.submittedAt).toLocaleString()}</p>
-                      <p><strong>File:</strong> ${currentTask.submittedFileName}</p>
-                  `;
-              } else if (currentTask.downloaded) {
-                  document.getElementById('downloadSection').classList.add('hidden');
-                  document.getElementById('uploadSection').classList.remove('hidden');
-              }
-          }
-
-          function downloadTask() {
-              if (!currentTask) return;
-
-              const studentKey = ${currentTask.className}-${currentTask.studentEmail};
-              assignments[studentKey].downloaded = true;
-              assignments[studentKey].downloadedAt = new Date().toISOString();
-              currentTask = assignments[studentKey];
-              saveData();
-
-              // Download from Google Drive via Apps Script
-              const downloadUrl = ${APPS_SCRIPT_URL}?action=download&file=${currentTask.studentFile};
-
-              // Open download in new tab
-              window.open(downloadUrl, '_blank');
-
-              document.getElementById('downloadSection').classList.add('hidden');
-              document.getElementById('uploadSection').classList.remove('hidden');
-          }
-
-          function submitTask() {
-              const fileInput = document.getElementById('fileUpload');
-              const file = fileInput.files[0];
-
-              if (!file || !currentTask) {
-                  alert('Please select a file to upload');
-                  return;
-              }
-
-              const submission = {
-                  id: Date.now(),
-                  studentName: currentTask.studentName,
-                  studentEmail: currentTask.studentEmail,
-                  className: currentTask.className,
-                  taskId: currentTask.taskId,
-                  fileName: file.name,
-                  fileSize: file.size,
-                  submittedAt: new Date().toISOString(),
-                  status: 'submitted'
-              };
-
-              submissions.push(submission);
-
-              const studentKey = ${currentTask.className}-${currentTask.studentEmail};
-              assignments[studentKey].submitted = true;
-              assignments[studentKey].submittedAt = submission.submittedAt;
-              assignments[studentKey].submittedFileName = file.name;
-              assignments[studentKey].status = 'submitted';
-              currentTask = assignments[studentKey];
-
-              saveData();
-
-              document.getElementById('uploadSection').classList.add('hidden');
-              document.getElementById('completedSection').classList.remove('hidden');
-
-              const submissionDetails = document.getElementById('submissionDetails');
-              submissionDetails.innerHTML = `
-                  <p><strong>Submitted:</strong> ${new Date(currentTask.submittedAt).toLocaleString()}</p>
-                  <p><strong>File:</strong> ${currentTask.submittedFileName}</p>
-              `;
-
-              alert('Task submitted successfully!');
-          }
-
-          // Professor functions
-          function showProfessorModal() {
-              document.getElementById('professorModal').classList.add('show');
-              document.getElementById('professorPassword').focus();
-          }
-
-          function closeProfessorModal() {
-              document.getElementById('professorModal').classList.remove('show');
-              document.getElementById('professorPassword').value = '';
-          }
-
-          function loginProfessor() {
-              const password = document.getElementById('professorPassword').value;
-
-              if (password === PROFESSOR_PASSWORD) {
-                  document.getElementById('studentView').classList.add('hidden');
-                  document.getElementById('professorView').classList.remove('hidden');
-                  closeProfessorModal();
-                  updateClassManagement();
-              } else {
-                  alert('Incorrect password');
-                  document.getElementById('professorPassword').value = '';
-              }
-          }
-
-          function logoutProfessor() {
-              document.getElementById('professorView').classList.add('hidden');
-              document.getElementById('studentView').classList.remove('hidden');
-              document.getElementById('createClassSection').classList.add('hidden');
-              document.getElementById('classMonitoring').classList.add('hidden');
-          }
-
-          function toggleCreateClass() {
-              const section = document.getElementById('createClassSection');
-              const button = document.getElementById('createClassToggle');
-
-              if (section.classList.contains('hidden')) {
-                  section.classList.remove('hidden');
-                  button.textContent = 'Cancel';
-              } else {
-                  section.classList.add('hidden');
-                  button.textContent = 'Create New Class';
-                  clearCreateClassForm();
-              }
-          }
-
-          function clearCreateClassForm() {
-              document.getElementById('newClassName').value = '';
-              document.getElementById('newClassStartDate').value = '';
-              document.getElementById('newClassEndDate').value = '';
-          }
-
-          function createClass() {
-              const className = document.getElementById('newClassName').value.trim();
-              const startDate = document.getElementById('newClassStartDate').value;
-              const endDate = document.getElementById('newClassEndDate').value;
-
-              if (!className || !startDate || !endDate) {
-                  alert('Please fill in all class details');
-                  return;
-              }
-
-              if (new Date(endDate) <= new Date(startDate)) {
-                  alert('End date must be after start date');
-                  return;
-              }
-
-              if (classes[className]) {
-                  alert('Class with this name already exists');
-                  return;
-              }
-
-              classes[className] = {
-                  name: className,
-                  startDate: startDate,
-                  endDate: endDate,
-                  createdAt: new Date().toISOString()
-              };
-
-              saveData();
-              updateClassDropdown();
-              updateClassManagement();
-              toggleCreateClass();
-              alert(Class "${className}" created successfully!);
-          }
-
-          function deleteClass(className) {
-              if (!confirm(Are you sure you want to delete class "${className}"?)) {
-                  return;
-              }
-
-              delete classes[className];
-
-              // Remove assignments for this class
-              Object.keys(assignments).forEach(key => {
-                  if (assignments[key].className === className) {
-                      delete assignments[key];
-                  }
-              });
-
-              // Remove submissions for this class
-              submissions = submissions.filter(sub => sub.className !== className);
-
-              saveData();
-              updateClassDropdown();
-              updateClassManagement();
-
-              if (selectedClass === className) {
-                  closeMonitoring();
-              }
-
-              alert(Class "${className}" deleted successfully!);
-          }
-
-          function updateClassManagement() {
-              const tableDiv = document.getElementById('classTable');
-              const classNames = Object.keys(classes);
-
-              if (classNames.length === 0) {
-                  tableDiv.innerHTML = '<p class="text-center">No classes created yet. Create your first class above.</p>';
-                  return;
-              }
-
-              let html = `
-                  <table class="table">
-                      <tr>
-                          <th>Class Name</th>
-                          <th>Start Date</th>
-                          <th>End Date</th>
-                          <th>Status</th>
-                          <th>Students</th>
-                          <th>Actions</th>
-                      </tr>
-              `;
-
-              classNames.forEach(className => {
-                  const classInfo = classes[className];
-                  const isActive = isClassActive(className);
-                  const studentCount = Object.values(assignments).filter(a => a.className === className).length;
-
-                  html += `
-                      <tr>
-                          <td><strong>${className}</strong></td>
-                          <td>${new Date(classInfo.startDate).toLocaleDateString()}</td>
-                          <td>${new Date(classInfo.endDate).toLocaleDateString()}</td>
-                          <td><span class="status-badge ${isActive ? 'status-submitted' : 'status-assigned'}">${isActive ? 'ACTIVE' :
-  'INACTIVE'}</span></td>
-                          <td>${studentCount}</td>
-                          <td>
-                              <button onclick="monitorClass('${className}')" class="btn btn-primary" style="padding: 4px 8px; font-size:
-  11px;">Monitor</button>
-                              <button onclick="deleteClass('${className}')" class="btn btn-danger" style="padding: 4px 8px; font-size:
-  11px;">Delete</button>
-                          </td>
-                      </tr>
-                  `;
-              });
-
-              html += '</table>';
-              tableDiv.innerHTML = html;
-          }
-
-          function monitorClass(className) {
-              selectedClass = className;
-              const classAssignments = Object.values(assignments).filter(assignment => assignment.className === className);
-
-              document.getElementById('monitoringTitle').textContent = Monitoring Class: ${className} (${classAssignments.length} students);
-              document.getElementById('classMonitoring').classList.remove('hidden');
-
-              let html = '';
-              if (classAssignments.length === 0) {
-                  html = '<p class="text-center">No students assigned tasks in this class yet.</p>';
-              } else {
-                  html = `
-                      <table class="table">
-                          <tr>
-                              <th>Student Name</th>
-                              <th>Email</th>
-                              <th>Task ID</th>
-                              <th>Assigned</th>
-                              <th>Downloaded</th>
-                              <th>Status</th>
-                              <th>Submitted</th>
-                              <th>Actions</th>
-                          </tr>
-                  `;
-
-                  classAssignments.forEach(assignment => {
-                      html += `
-                          <tr>
-                              <td>${assignment.studentName}</td>
-                              <td style="font-size: 10px;">${assignment.studentEmail}</td>
-                              <td><strong>${assignment.taskId}</strong></td>
-                              <td style="font-size: 10px;">${new Date(assignment.assignedAt).toLocaleDateString()}</td>
-                              <td class="text-center">${assignment.downloaded ? '✅' : '❌'}</td>
-                              <td><span class="status-badge status-${assignment.status}">${assignment.status.toUpperCase()}</span></td>
-                              <td style="font-size: 10px;">
-                                  ${assignment.submitted ?
-                                      ${new Date(assignment.submittedAt).toLocaleDateString()}<br><span style="color:
-  #666;">${assignment.submittedFileName}</span> :
-                                      '-'
-                                  }
-                              </td>
-                              <td>
-                                  <button onclick="downloadInstructorVersion('${assignment.instructorFile}')" class="btn btn-primary"
-  style="padding: 2px 6px; font-size: 10px;">📋 Instructor</button>
-                              </td>
-                          </tr>
-                      `;
-                  });
-
-                  html += '</table>';
-              }
-
-              document.getElementById('monitoringTable').innerHTML = html;
-          }
-
-          function closeMonitoring() {
-              document.getElementById('classMonitoring').classList.add('hidden');
-              selectedClass = '';
-          }
-
-          function downloadInstructorVersion(fileName) {
-              const downloadUrl = ${APPS_SCRIPT_URL}?action=download&file=${fileName};
-              window.open(downloadUrl, '_blank');
-          }
-      </script>
-  </body>
-  </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical Thinking Task System</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
+        .container { min-height: 100vh; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .card { background-color: white; border: none; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
+        .form-input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s; }
+        .form-input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.2); }
+        .btn { padding: 14px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; margin-right: 12px; margin-bottom: 10px; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(to right, #3498db, #2980b9); color: white; }
+        .btn-success { background: linear-gradient(to right, #2ecc71, #27ae60); color: white; }
+        .btn-danger { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; }
+        .btn-secondary { background: linear-gradient(to right, #95a5a6, #7f8c8d); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .alert { padding: 18px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid; }
+        .alert-success { background-color: #d4f7e6; border-color: #2ecc71; color: #27ae60; }
+        .alert-warning { background-color: #fef5e7; border-color: #f39c12; color: #d35400; }
+        .alert-info { background-color: #e6f4ff; border-color: #3498db; color: #2980b9; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1000; }
+        .modal.show { display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+        .table { width: 100%; border-collapse: collapse; background-color: white; margin-top: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .table th, .table td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; font-size: 14px; }
+        .table th { background-color: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        .table tr:nth-child(even) { background-color: #f9f9f9; }
+        .table tr:hover { background-color: #f1f8ff; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-assigned { background-color: #e74c3c; color: white; }
+        .status-downloaded { background-color: #f39c12; color: white; }
+        .status-submitted { background-color: #2ecc71; color: white; }
+        .hidden { display: none; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .text-center { text-align: center; }
+        .text-small { font-size: 14px; color: #7f8c8d; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        h1 { color: #2c3e50; margin-bottom: 15px; font-weight: 700; text-align: center; }
+        h3 { color: #2c3e50; margin-bottom: 20px; font-weight: 600; }
+        .header-icon { font-size: 32px; margin-bottom: 15px; display: block; text-align: center; }
+        .keyboard-shortcut { background: #f1f2f6; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .btn { width: 100%; margin-right: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Student Interface -->
+        <div id="studentView">
+            <div class="header-icon">🧠</div>
+            <h1>Critical Thinking Task System</h1>
+            <div class="text-small mb-3 text-center">
+                Press <span class="keyboard-shortcut">Ctrl+Shift+I</span> for instructor access
+            </div>
+
+            <!-- Get Task Form -->
+            <div id="getTaskSection" class="card">
+                <h3>Get Your Task Assignment</h3>
+                <div class="form-group">
+                    <label class="form-label">Full Name:</label>
+                    <input type="text" id="studentName" class="form-input" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" id="studentEmail" class="form-input" placeholder="Enter your email address">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Class Name:</label>
+                    <select id="className" class="form-input">
+                        <option value="">Select your class...</option>
+                        <option value="Business Ethics">Business Ethics</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Data Analysis">Data Analysis</option>
+                    </select>
+                    <div id="noClassesMsg" class="text-small mt-3 hidden">No active classes available. Contact your professor.</div>
+                </div>
+                <div class="text-center">
+                    <button onclick="getStudentTask()" class="btn btn-primary" id="getTaskBtn">Get My Task</button>
+                </div>
+            </div>
+
+            <!-- Task Assignment Display -->
+            <div id="taskSection" class="card hidden">
+                <div class="alert alert-success">
+                    <h3>Your Assigned Task</h3>
+                    <div id="taskDetails"></div>
+                </div>
+
+                <!-- Download Section -->
+                <div id="downloadSection" class="mb-3 text-center">
+                    <button onclick="downloadTask()" class="btn btn-success">📥 Download Task File</button>
+                </div>
+
+                <!-- Upload Section -->
+                <div id="uploadSection" class="alert alert-warning hidden">
+                    <h4>Submit Completed Task</h4>
+                    <div class="form-group">
+                        <label class="form-label">Upload your completed task file:</label>
+                        <input type="file" id="fileUpload" class="form-input" accept=".html,.pdf,.doc,.docx,.zip">
+                        <div id="fileInfo" class="text-small mt-3"></div>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="submitTask()" class="btn btn-primary" id="submitBtn" disabled>📤 Submit Task</button>
+                    </div>
+                </div>
+
+                <!-- Completed Section -->
+                <div id="completedSection" class="alert alert-info hidden">
+                    <h4>✅ Task Submitted</h4>
+                    <div id="submissionDetails"></div>
+                    <p style="font-style: italic;">Your task has been successfully submitted. Thank you!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professor Interface -->
+        <div id="professorView" class="hidden">
+            <div class="header-icon">👨‍🏫</div>
+            <h1>Professor Dashboard</h1>
+            <div class="text-center mb-3">
+                <button onclick="logoutProfessor()" class="btn btn-danger">Logout</button>
+                <button onclick="toggleCreateClass()" class="btn btn-success" id="createClassToggle">Create New Class</button>
+            </div>
+
+            <!-- Create Class Form -->
+            <div id="createClassSection" class="card hidden">
+                <h3>Create New Class</h3>
+                <div class="form-group">
+                    <label class="form-label">Class Name:</label>
+                    <input type="text" id="newClassName" class="form-input" placeholder="e.g., Business Ethics 2025">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Start Date:</label>
+                        <input type="date" id="newClassStartDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date:</label>
+                        <input type="date" id="newClassEndDate" class="form-input">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button onclick="createClass()" class="btn btn-success">Create Class</button>
+                </div>
+            </div>
+
+            <!-- Class Management -->
+            <div id="classManagement" class="card">
+                <h3>Manage Classes</h3>
+                <div id="classTable"></div>
+            </div>
+
+            <!-- Class Monitoring -->
+            <div id="classMonitoring" class="card hidden">
+                <h3 id="monitoringTitle">Class Monitoring</h3>
+                <div class="text-center mb-3">
+                    <button onclick="closeMonitoring()" class="btn btn-secondary">Close</button>
+                </div>
+                <div id="monitoringTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professor Login Modal -->
+    <div id="professorModal" class="modal">
+        <div class="modal-content text-center">
+            <h3>Professor Login</h3>
+            <div class="form-group">
+                <input type="password" id="professorPassword" class="form-input" placeholder="Enter professor password">
+            </div>
+            <div class="text-center">
+                <button onclick="loginProfessor()" class="btn btn-primary">Login</button>
+                <button onclick="closeProfessorModal()" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let assignments = {};
+        let submissions = [];
+        let classes = {
+            "Business Ethics": {
+                name: "Business Ethics",
+                startDate: "2023-09-01",
+                endDate: "2023-12-20",
+                createdAt: new Date().toISOString()
+            },
+            "Computer Science": {
+                name: "Computer Science",
+                startDate: "2023-09-01",
+                endDate: "2023-12-20",
+                createdAt: new Date().toISOString()
+            },
+            "Data Analysis": {
+                name: "Data Analysis",
+                startDate: "2023-09-01",
+                endDate: "2023-12-20",
+                createdAt: new Date().toISOString()
+            }
+        };
+        let currentTask = null;
+        let selectedClass = '';
+        const PROFESSOR_PASSWORD = 'prof123'; // Simplified for demo
+
+        // Load data on page load
+        window.onload = function() {
+            loadData();
+            updateClassDropdown();
+            updateClassManagement();
+
+            // Add keyboard shortcut for professor login
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.code === 'KeyI') {
+                    e.preventDefault();
+                    showProfessorModal();
+                }
+            });
+
+            // File upload handler
+            document.getElementById('fileUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const submitBtn = document.getElementById('submitBtn');
+                const fileInfo = document.getElementById('fileInfo');
+
+                if (file) {
+                    fileInfo.textContent = `Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+                    submitBtn.disabled = false;
+                } else {
+                    fileInfo.textContent = '';
+                    submitBtn.disabled = true;
+                }
+            });
+
+            // Enter key for professor password
+            document.getElementById('professorPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginProfessor();
+                }
+            });
+        };
+
+        // Data management
+        function loadData() {
+            const savedAssignments = localStorage.getItem('taskAssignments');
+            const savedSubmissions = localStorage.getItem('taskSubmissions');
+            const savedClasses = localStorage.getItem('classManagement');
+
+            if (savedAssignments) assignments = JSON.parse(savedAssignments);
+            if (savedSubmissions) submissions = JSON.parse(savedSubmissions);
+            if (savedClasses) classes = JSON.parse(savedClasses);
+        }
+
+        function saveData() {
+            localStorage.setItem('taskAssignments', JSON.stringify(assignments));
+            localStorage.setItem('taskSubmissions', JSON.stringify(submissions));
+            localStorage.setItem('classManagement', JSON.stringify(classes));
+        }
+
+        // Hash function for consistent task assignment
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash);
+        }
+
+        // Check if class is active
+        function isClassActive(className) {
+            const classInfo = classes[className];
+            if (!classInfo) return false;
+
+            const now = new Date();
+            const startDate = new Date(classInfo.startDate);
+            const endDate = new Date(classInfo.endDate);
+
+            return now >= startDate && now <= endDate;
+        }
+
+        // Get active classes
+        function getActiveClasses() {
+            return Object.keys(classes).filter(className => isClassActive(className));
+        }
+
+        // Update class dropdown
+        function updateClassDropdown() {
+            const dropdown = document.getElementById('className');
+            const noClassesMsg = document.getElementById('noClassesMsg');
+            const activeClasses = getActiveClasses();
+
+            dropdown.innerHTML = '<option value="">Select your class...</option>';
+
+            activeClasses.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                dropdown.appendChild(option);
+            });
+
+            if (activeClasses.length === 0) {
+                noClassesMsg.classList.remove('hidden');
+                document.getElementById('getTaskBtn').disabled = true;
+            } else {
+                noClassesMsg.classList.add('hidden');
+                document.getElementById('getTaskBtn').disabled = false;
+            }
+        }
+
+        // Student functions
+        function getStudentTask() {
+            const studentName = document.getElementById('studentName').value.trim();
+            const studentEmail = document.getElementById('studentEmail').value.trim();
+            const className = document.getElementById('className').value.trim();
+
+            if (!studentName || !studentEmail || !className) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (!classes[className]) {
+                alert('This class does not exist. Please check the class name with your professor.');
+                return;
+            }
+
+            if (!isClassActive(className)) {
+                const classInfo = classes[className];
+                const startDate = new Date(classInfo.startDate).toLocaleDateString();
+                const endDate = new Date(classInfo.endDate).toLocaleDateString();
+                alert(`This class is not currently active.\nActive period: ${startDate} - ${endDate}`);
+                return;
+            }
+
+            const studentKey = `${className}-${studentEmail}`;
+
+            // Check if student already has an assignment
+            if (assignments[studentKey]) {
+                currentTask = assignments[studentKey];
+                showTaskSection();
+                return;
+            }
+
+            // Generate available tasks
+            const availableTasks = [];
+            for (let i = 1; i <= 50; i++) {
+                const taskNum = i.toString().padStart(3, '0');
+                availableTasks.push({
+                    studentFile: `Task${taskNum}-Student.html`,
+                    instructorFile: `Task${taskNum}-Instructor.html`,
+                    taskNumber: taskNum,
+                    taskId: `Task${taskNum}`
+                });
+            }
+
+            // Get used tasks for this class
+            const classAssignments = Object.values(assignments).filter(assignment =>
+                assignment.className === className
+            );
+            const usedTaskNumbers = classAssignments.map(assignment => assignment.taskNumber);
+
+            // Filter available tasks
+            const unassignedTasks = availableTasks.filter(task =>
+                !usedTaskNumbers.includes(task.taskNumber)
+            );
+
+            if (unassignedTasks.length === 0) {
+                alert('No more tasks available for this class');
+                return;
+            }
+
+            // Assign task based on email hash
+            const hash = hashString(studentEmail);
+            const taskIndex = hash % unassignedTasks.length;
+            const selectedTask = unassignedTasks[taskIndex];
+
+            const assignment = {
+                studentName: studentName,
+                studentEmail: studentEmail,
+                className: className,
+                taskNumber: selectedTask.taskNumber,
+                taskId: selectedTask.taskId,
+                studentFile: selectedTask.studentFile,
+                instructorFile: selectedTask.instructorFile,
+                assignedAt: new Date().toISOString(),
+                status: 'assigned',
+                downloaded: false,
+                submitted: false,
+                submittedAt: null,
+                submittedFileName: null
+            };
+
+            assignments[studentKey] = assignment;
+            currentTask = assignment;
+            saveData();
+            showTaskSection();
+        }
+
+        function showTaskSection() {
+            document.getElementById('getTaskSection').classList.add('hidden');
+            document.getElementById('taskSection').classList.remove('hidden');
+
+            const taskDetails = document.getElementById('taskDetails');
+            taskDetails.innerHTML = `
+                <p><strong>Student:</strong> ${currentTask.studentName}</p>
+                <p><strong>Email:</strong> ${currentTask.studentEmail}</p>
+                <p><strong>Class:</strong> ${currentTask.className}</p>
+                <p><strong>Task ID:</strong> ${currentTask.taskId}</p>
+                <p><strong>Assigned:</strong> ${new Date(currentTask.assignedAt).toLocaleString()}</p>
+                <p><strong>Status:</strong> <span class="status-badge status-${currentTask.status}">${currentTask.status.toUpperCase()}</span></p>
+            `;
+
+            if (currentTask.submitted) {
+                document.getElementById('downloadSection').classList.add('hidden');
+                document.getElementById('uploadSection').classList.add('hidden');
+                document.getElementById('completedSection').classList.remove('hidden');
+
+                const submissionDetails = document.getElementById('submissionDetails');
+                submissionDetails.innerHTML = `
+                    <p><strong>Submitted:</strong> ${new Date(currentTask.submittedAt).toLocaleString()}</p>
+                    <p><strong>File:</strong> ${currentTask.submittedFileName}</p>
+                `;
+            } else if (currentTask.downloaded) {
+                document.getElementById('downloadSection').classList.add('hidden');
+                document.getElementById('uploadSection').classList.remove('hidden');
+            }
+        }
+
+        function downloadTask() {
+            if (!currentTask) return;
+
+            const studentKey = `${currentTask.className}-${currentTask.studentEmail}`;
+            assignments[studentKey].downloaded = true;
+            assignments[studentKey].downloadedAt = new Date().toISOString();
+            assignments[studentKey].status = 'downloaded';
+            currentTask = assignments[studentKey];
+            saveData();
+
+            // Simulate download (since the Google Apps Script URL isn't working)
+            alert(`Simulating download of: ${currentTask.studentFile}\n\nIn a real implementation, this would download the actual file.`);
+            
+            document.getElementById('downloadSection').classList.add('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
+            
+            // Update status in the UI
+            const taskDetails = document.getElementById('taskDetails');
+            const statusElement = taskDetails.querySelector('.status-badge');
+            if (statusElement) {
+                statusElement.textContent = 'DOWNLOADED';
+                statusElement.className = 'status-badge status-downloaded';
+            }
+        }
+
+        function submitTask() {
+            const fileInput = document.getElementById('fileUpload');
+            const file = fileInput.files[0];
+
+            if (!file || !currentTask) {
+                alert('Please select a file to upload');
+                return;
+            }
+
+            const submission = {
+                id: Date.now(),
+                studentName: currentTask.studentName,
+                studentEmail: currentTask.studentEmail,
+                className: currentTask.className,
+                taskId: currentTask.taskId,
+                fileName: file.name,
+                fileSize: file.size,
+                submittedAt: new Date().toISOString(),
+                status: 'submitted'
+            };
+
+            submissions.push(submission);
+
+            const studentKey = `${currentTask.className}-${currentTask.studentEmail}`;
+            assignments[studentKey].submitted = true;
+            assignments[studentKey].submittedAt = submission.submittedAt;
+            assignments[studentKey].submittedFileName = file.name;
+            assignments[studentKey].status = 'submitted';
+            currentTask = assignments[studentKey];
+
+            saveData();
+
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('completedSection').classList.remove('hidden');
+
+            const submissionDetails = document.getElementById('submissionDetails');
+            submissionDetails.innerHTML = `
+                <p><strong>Submitted:</strong> ${new Date(currentTask.submittedAt).toLocaleString()}</p>
+                <p><strong>File:</strong> ${currentTask.submittedFileName}</p>
+            `;
+
+            alert('Task submitted successfully!');
+        }
+
+        // Professor functions
+        function showProfessorModal() {
+            document.getElementById('professorModal').classList.add('show');
+            document.getElementById('professorPassword').focus();
+        }
+
+        function closeProfessorModal() {
+            document.getElementById('professorModal').classList.remove('show');
+            document.getElementById('professorPassword').value = '';
+        }
+
+        function loginProfessor() {
+            const password = document.getElementById('professorPassword').value;
+
+            if (password === PROFESSOR_PASSWORD) {
+                document.getElementById('studentView').classList.add('hidden');
+                document.getElementById('professorView').classList.remove('hidden');
+                closeProfessorModal();
+                updateClassManagement();
+            } else {
+                alert('Incorrect password');
+                document.getElementById('professorPassword').value = '';
+            }
+        }
+
+        function logoutProfessor() {
+            document.getElementById('professorView').classList.add('hidden');
+            document.getElementById('studentView').classList.remove('hidden');
+            document.getElementById('createClassSection').classList.add('hidden');
+            document.getElementById('classMonitoring').classList.add('hidden');
+        }
+
+        function toggleCreateClass() {
+            const section = document.getElementById('createClassSection');
+            const button = document.getElementById('createClassToggle');
+
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+                button.textContent = 'Cancel';
+            } else {
+                section.classList.add('hidden');
+                button.textContent = 'Create
