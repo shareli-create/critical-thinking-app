@@ -168,6 +168,7 @@
         let currentTask = null;
         let selectedClass = '';
         const PROFESSOR_PASSWORD = 'admin123'; // Change this!
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3DNt7FaIi7Wq_I6IkeIvEJQ4XQzGvYk1V9GSvk6hH7I0AZAnkIolb-EhlKyV9UuHy-Q/exec';
 
         // Load data on page load
         window.onload = function() {
@@ -402,7 +403,11 @@
             currentTask = assignments[studentKey];
             saveData();
 
-            alert(`Task assigned: ${currentTask.taskId}\n\nIn a real implementation, this would download:\n${currentTask.studentFile}\n\nFrom your Google Drive via Apps Script.`);
+            // Download from Google Drive via Apps Script
+            const downloadUrl = `${APPS_SCRIPT_URL}?action=download&file=${currentTask.studentFile}`;
+            
+            // Open download in new tab
+            window.open(downloadUrl, '_blank');
             
             document.getElementById('downloadSection').classList.add('hidden');
             document.getElementById('uploadSection').classList.remove('hidden');
@@ -670,7 +675,8 @@
         }
 
         function downloadInstructorVersion(fileName) {
-            alert(`Would download instructor version:\n${fileName}\n\nFrom your Google Drive via Apps Script.`);
+            const downloadUrl = `${APPS_SCRIPT_URL}?action=download&file=${fileName}`;
+            window.open(downloadUrl, '_blank');
         }
     </script>
 </body>
