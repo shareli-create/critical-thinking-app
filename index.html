@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical Thinking Task System</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // import React, { useState, useEffect } from 'react';
+
+const CriticalThinkingApp = () => {
+  const [view, setView] = useState('student');
+  const [studentName, setStudentName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [className, setClassName] = useState('');
+  const [assignedTask, setAssignedTask] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [assignments, setAssignments] = useState({});
+  const [submissions, setSubmissions] = useState([]);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  // Class management
+  const [classes, setClasses] = useState({});
+  const [showCreateClass, setShowCreateClass] = useState(false);
+  const [newClassName, setNewClassName] = useState('');
+  const [newClassStartDate, setNewClassStartDate] = useState('');
+  const [newClassEndDate, setNewClassEndDate] = useState('');
+
+  // Load saved data
+  useEffect(() => {
+    const savedAssignments = localStorage.getItem('taskAssignments');
+    const savedSubmissions = localStorage.getItem('taskSubmissions');
+    const savedClasses = localStorage.getItem('classManagement');
+    
+    if (savedAssignments) {
+      setAssignments(JSON.parse(savedAssignments));
+    }
+    if (savedSubmissions) {
+      setSubmissions(JSON.parse(savedSubmissions));
+    }
+    if (savedClasses) {
+      setClasses(JSON.parse(savedClasses));
+    }
+  }, []);
+
+  // Save data when it changes
+  useEffect(() => {
+    localStorage.setItem('taskAssignments', JSON.stringify(assignments));
+  }, [assignments]);
+
+  useEffect(() => {
+    localStorage.setItem('taskSubmissions', JSON.stringify(submissions));
+  }, [submissions]);
+
+  useEffect(() => {
+    localStorage.setItem('classManagement', JSON.stringify(classes));
+  }, [classes]);
+
+  // Simple hash function for consistent task assignment
+  const hashString = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  };
+
+  // Check if class is active
+  const isClassActive = (className) => {
+    const classInfo = classes[className];
+    if (!classInfo) return false;
+    
+    const now = new Date();
+    const startDate = new Date(classInfo.startDate);
+    const endDate = new Date(classInfo.endDate);
+    
+    return now >= startDate && now <= endDate;
+  };
+
+  // Get active classes
+  const getActiveClasses = () => {
+    return Object.keys(classes).filter(className => isClassActive(className));
+  };
+
+  // Create new class
+  const createClass = () => {
+    if (!newClassName.trim() || !newClassStartDate || !newClassEndDate) {
+      alert('Please fill in all class details');
+      return;
+    }
+
+    if (new Date(newClassEndDate) <= new Date(newClassStartDate)) {
+      alert('End date must be after start date');
+      return;
+    }
+
+    if (classes[newClassName.trim()]) {
+      alert('Class with this name already exists');
+      return;
+    }
+
+    const newClass = {
+      name: newClassName.trim(),
+      startDate: newClassStartDate,
+      endDate: newClassEndDate,
+      createdAt: new Date().toISOString()
+    };
+
+    setClasses({
+      ...classes,
+      [newClassName.trim()]: newClass
+    });
+
+    setNewClassName('');
+    setNewClassStartDate('');
+    setNewClassEndDate('');
+    setShowCreateClass(false);
+    
+    alert(`Class "${newClassName.trim()}" created successfully!`);
+  };
+
+  // Delete class
+  const deleteClass = (className) => {
+    if (!window.confirm(`Are you sure you want to delete class "${className}"? This will remove all associated assignments.`)) {
+      return;
+    }
+
+    // Remove class
+    const updatedClasses = { ...classes };
+    delete updatedClasses[className];
+    setClasses(updatedClasses);
+
+    // Remove assignments for this class
+    const updatedAssignments = {};
+    Object.keys(assignments).forEach(key => {
+      if (assignments[key].className !== className) {
+        updatedAssignments[key] = assignments[key];
+      }
+    });
+    setAssignments(updatedAssignments);
+
+    // Remove submissions for this class
+    const updatedSubmissions = submissions.filter(sub => sub.className !== className);
+    setSubmissions(updatedSubmissions);
+
+    if (selectedClass === className) {
+      setSelectedClass('');
+    }
+
+    alert(`Class "${className}" deleted successfully!`);
+  };
+
+  // Get or assign task for student
+  const getStudentTask = async () => {
+    if (!studentName.trim() || !studentEmail.trim() || !className.trim()) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    // Check if class exists
+    if (!classes[className.trim()]) {
+      alert('This class does not exist. Please check the class name with your professor.');
+      return;
+    }
+
+    // Check if class is active
+    if (!isClassActive(className.trim())) {
+      const classInfo = classes[className.trim()];
+      const startDate = new Date(classInfo.startDate).toLocaleDateString();
+      const endDate = new Date(classInfo.endDate).toLocaleDateString();
+      alert(`This class is not currently active.\nActive period: ${startDate} - ${endDate}`);
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const studentKey = `${className}-${studentEmail}`;
+      
+      // Check if student already has an assignment
+      if (assignments[studentKey]) {
+        setAssignedTask(assignments[studentKey]);
+        setLoading(false);
+        return;
+      }
+
+      // Simulate available tasks
+      const availableTasks = [];
+      for (let i = 1; i <= 50; i++) {
+        const taskNum = i.toString().padStart(3, '0');
+        availableTasks.push({
+          studentFile: `Task${taskNum}-Student.html`,
+          instructorFile: `Task${taskNum}-Instructor.html`,
+          taskNumber: taskNum,
+          taskId: `Task${taskNum}`
+        });
+      }
+
+      // Get tasks already assigned to this class
+      const classAssignments = Object.values(assignments).filter(assignment => 
+        assignment.className === className
+      );
+      const usedTaskNumbers = classAssignments.map(assignment => assignment.taskNumber);
+
+      // Filter available tasks
+      const unassignedTasks = availableTasks.filter(task => 
+        !usedTaskNumbers.includes(task.taskNumber)
+      );
+
+      if (unassignedTasks.length === 0) {
+        alert('No more tasks available for this class');
+        setLoading(false);
+        return;
+      }
+
+      // Assign task based on student email hash for consistency
+      const hash = hashString(studentEmail);
+      const taskIndex = hash % unassignedTasks.length;
+      const selectedTask = unassignedTasks[taskIndex];
+
+      const assignment = {
+        studentName: studentName.trim(),
+        studentEmail: studentEmail.trim(),
+        className: className.trim(),
+        taskNumber: selectedTask.taskNumber,
+        taskId: selectedTask.taskId,
+        studentFile: selectedTask.studentFile,
+        instructorFile: selectedTask.instructorFile,
+        assignedAt: new Date().toISOString(),
+        status: 'assigned',
+        downloaded: false,
+        submitted: false,
+        submittedAt: null,
+        submittedFileName: null
+      };
+
+      const newAssignments = {
+        ...assignments,
+        [studentKey]: assignment
+      };
+
+      setAssignments(newAssignments);
+      setAssignedTask(assignment);
+
+    } catch (error) {
+      console.error('Error assigning task:', error);
+      alert('Error assigning task. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Download task file
+  const downloadTask = () => {
+    if (!assignedTask) return;
+
+    // Update download status
+    const studentKey = `${assignedTask.className}-${assignedTask.studentEmail}`;
+    const updatedAssignments = {
+      ...assignments,
+      [studentKey]: {
+        ...assignments[studentKey],
+        downloaded: true,
+        downloadedAt: new Date().toISOString()
+      }
+    };
+    setAssignments(updatedAssignments);
+    setAssignedTask(updatedAssignments[studentKey]);
+
+    // Create download link (this would normally fetch from your Google Drive via Apps Script)
+    const downloadUrl = `YOUR_APPS_SCRIPT_URL?action=download&file=${assignedTask.studentFile}`;
+    
+    // For demo purposes, show the task info
+    alert(`Task assigned: ${assignedTask.taskId}\n\nIn a real implementation, this would download:\n${assignedTask.studentFile}\n\nFrom your Google Drive via Apps Script.`);
+    
+    // In real implementation:
+    // window.open(downloadUrl, '_blank');
+  };
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedFile(file);
+    }
+  };
+
+  // Submit completed task
+  const submitTask = () => {
+    if (!uploadedFile) {
+      alert('Please select a file to upload');
+      return;
+    }
+
+    if (!assignedTask) {
+      alert('No task assigned');
+      return;
+    }
+
+    const submission = {
+      id: Date.now(),
+      studentName: assignedTask.studentName,
+      studentEmail: assignedTask.studentEmail,
+      className: assignedTask.className,
+      taskId: assignedTask.taskId,
+      fileName: uploadedFile.name,
+      fileSize: uploadedFile.size,
+      submittedAt: new Date().toISOString(),
+      status: 'submitted'
+    };
+
+    const newSubmissions = [...submissions, submission];
+    setSubmissions(newSubmissions);
+
+    // Update assignment status
+    const studentKey = `${assignedTask.className}-${assignedTask.studentEmail}`;
+    const updatedAssignments = {
+      ...assignments,
+      [studentKey]: {
+        ...assignments[studentKey],
+        submitted: true,
+        submittedAt: submission.submittedAt,
+        submittedFileName: uploadedFile.name,
+        status: 'submitted'
+      }
+    };
+    setAssignments(updatedAssignments);
+    setAssignedTask(updatedAssignments[studentKey]);
+
+    setUploadedFile(null);
+    // Reset file input
+    const fileInput = document.getElementById('fileUpload');
+    if (fileInput) fileInput.value = '';
+
+    alert('Task submitted successfully!');
+  };
+
+  // Get assignments for selected class
+  const getClassAssignments = () => {
+    if (!selectedClass) return [];
+    return Object.values(assignments).filter(assignment => assignment.className === selectedClass);
+  };
+
+  // Download instructor version
+  const downloadInstructorVersion = (assignment) => {
+    const downloadUrl = `YOUR_APPS_SCRIPT_URL?action=download&file=${assignment.instructorFile}`;
+    alert(`Would download instructor version:\n${assignment.instructorFile}\n\nFrom your Google Drive via Apps Script.`);
+    // In real implementation:
+    // window.open(downloadUrl, '_blank');
+  };
+
+  const StudentView = () => (
+    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ color: '#333', marginBottom: '10px' }}>Critical Thinking Task System</h1>
+        <button 
+          onClick={() => setView('professor')}
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#6c757d', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Professor View
+        </button>
+      </div>
+
+      {!assignedTask ? (
+        <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+          <h3 style={{ marginBottom: '15px', color: '#333' }}>Get Your Task Assignment</h3>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Full Name:</label>
+            <input
+              type="text"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              placeholder="Enter your full name"
+              style={{ 
+                width: '100%', 
+                padding: '10px', 
+                border: '1px solid #ddd', 
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
+            <input
+              type="email"
+              value={studentEmail}
+              onChange={(e) => setStudentEmail(e.target.value)}
+              placeholder="Enter your email address"
+              style={{ 
+                width: '100%', 
+                padding: '10px', 
+                border: '1px solid #ddd', 
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Class Name:</label>
+            <select
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '10px', 
+                border: '1px solid #ddd', 
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}
+            >
+              <option value="">Select your class...</option>
+              {getActiveClasses().map(cls => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+            {getActiveClasses().length === 0 && (
+              <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                No active classes available. Contact your professor.
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={getStudentTask}
+            disabled={loading || getActiveClasses().length === 0}
+            style={{ 
+              width: '100%',
+              padding: '12px', 
+              backgroundColor: loading || getActiveClasses().length === 0 ? '#6c757d' : '#007bff', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px',
+              fontSize: '16px',
+              cursor: loading || getActiveClasses().length === 0 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {loading ? 'Assigning Task...' : 'Get My Task'}
+          </button>
+        </div>
+      ) : (
+        <div>
+          <div style={{ 
+            backgroundColor: '#d4edda', 
+            border: '1px solid #c3e6cb', 
+            padding: '20px', 
+            borderRadius: '8px', 
+            marginBottom: '20px' 
+          }}>
+            <h3 style={{ color: '#155724', marginBottom: '10px' }}>Your Assigned Task</h3>
+            <p><strong>Student:</strong> {assignedTask.studentName}</p>
+            <p><strong>Email:</strong> {assignedTask.studentEmail}</p>
+            <p><strong>Class:</strong> {assignedTask.className}</p>
+            <p><strong>Task ID:</strong> {assignedTask.taskId}</p>
+            <p><strong>Assigned:</strong> {new Date(assignedTask.assignedAt).toLocaleString()}</p>
+            <p><strong>Status:</strong> 
+              <span style={{ 
+                marginLeft: '8px',
+                padding: '2px 6px',
+                borderRadius: '3px',
+                backgroundColor: assignedTask.status === 'submitted' ? '#28a745' : '#ffc107',
+                color: assignedTask.status === 'submitted' ? 'white' : '#212529',
+                fontSize: '12px'
+              }}>
+                {assignedTask.status.toUpperCase()}
+              </span>
+            </p>
+          </div>
+
+          {!assignedTask.downloaded && (
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                onClick={downloadTask}
+                style={{ 
+                  width: '100%',
+                  padding: '12px', 
+                  backgroundColor: '#28a745', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  fontSize: '16px',
+                  cursor: 'pointer'
+                }}
+              >
+                📥 Download Task File
+              </button>
+            </div>
+          )}
+
+          {assignedTask.downloaded && !assignedTask.submitted && (
+            <div style={{ 
+              backgroundColor: '#fff3cd', 
+              border: '1px solid #ffeaa7', 
+              padding: '20px', 
+              borderRadius: '8px',
+              marginBottom: '20px'
+            }}>
+              <h4 style={{ color: '#856404', marginBottom: '15px' }}>Submit Completed Task</h4>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Upload your completed task file:
+                </label>
+                <input
+                  id="fileUpload"
+                  type="file"
+                  onChange={handleFileUpload}
+                  accept=".html,.pdf,.doc,.docx,.zip"
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '4px'
+                  }}
+                />
+                {uploadedFile && (
+                  <p style={{ marginTop: '5px', fontSize: '14px', color: '#666' }}>
+                    Selected: {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)} KB)
+                  </p>
+                )}
+              </div>
+
+              <button
+                onClick={submitTask}
+                disabled={!uploadedFile}
+                style={{ 
+                  width: '100%',
+                  padding: '12px', 
+                  backgroundColor: uploadedFile ? '#007bff' : '#6c757d', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  fontSize: '16px',
+                  cursor: uploadedFile ? 'pointer' : 'not-allowed'
+                }}
+              >
+                📤 Submit Task
+              </button>
+            </div>
+          )}
+
+          {assignedTask.submitted && (
+            <div style={{ 
+              backgroundColor: '#d1ecf1', 
+              border: '1px solid #bee5eb', 
+              padding: '20px', 
+              borderRadius: '8px'
+            }}>
+              <h4 style={{ color: '#0c5460', marginBottom: '10px' }}>✅ Task Submitted</h4>
+              <p><strong>Submitted:</strong> {new Date(assignedTask.submittedAt).toLocaleString()}</p>
+              <p><strong>File:</strong> {assignedTask.submittedFileName}</p>
+              <p style={{ color: '#0c5460', fontStyle: 'italic' }}>
+                Your task has been successfully submitted. Thank you!
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const ProfessorView = () => (
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ color: '#333', marginBottom: '10px' }}>Professor Dashboard</h1>
+        <button 
+          onClick={() => setView('student')}
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#007bff', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          Student View
+        </button>
+        <button 
+          onClick={() => setShowCreateClass(!showCreateClass)}
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#28a745', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          {showCreateClass ? 'Cancel' : 'Create New Class'}
+        </button>
+      </div>
+
+      {/* Create Class Form */}
+      {showCreateClass && (
+        <div style={{ 
+          backgroundColor: '#f8f9fa', 
+          border: '1px solid #ddd', 
+          padding: '20px', 
+          borderRadius: '8px', 
+          marginBottom: '20px' 
+        }}>
+          <h3 style={{ marginBottom: '15px', color: '#333' }}>Create New Class</h3>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Class Name:</label>
+            <input
+              type="text"
+              value={newClassName}
+              onChange={(e) => setNewClassName(e.target.value)}
+              placeholder="e.g., Business Ethics 2025, Management 101"
+              style={{ 
+                width: '100%', 
+                padding: '8px', 
+                border: '1px solid #ddd', 
+                borderRadius: '4px'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Start Date:</label>
+              <input
+                type="date"
+                value={newClassStartDate}
+                onChange={(e) => setNewClassStartDate(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '8px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>End Date:</label>
+              <input
+                type="date"
+                value={newClassEndDate}
+                onChange={(e) => setNewClassEndDate(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '8px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px'
+                }}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={createClass}
+            style={{ 
+              padding: '10px 20px', 
+              backgroundColor: '#28a745', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Create Class
+          </button>
+        </div>
+      )}
+
+      {/* Class List */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ color: '#333', marginBottom: '15px' }}>Manage Classes</h3>
+        
+        {Object.keys(classes).length === 0 ? (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '20px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '8px',
+            color: '#666'
+          }}>
+            No classes created yet. Create your first class above.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse', 
+              backgroundColor: 'white',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              marginBottom: '20px'
+            }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                  <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Class Name</th>
+                  <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Start Date</th>
+                  <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>End Date</th>
+                  <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Status</th>
+                  <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Students</th>
+                  <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.values(classes).map((classInfo, index) => (
+                  <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>{assignment.studentName}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px', fontSize: '12px' }}>{assignment.studentEmail}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px', fontWeight: 'bold' }}>{assignment.taskId}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px', fontSize: '12px' }}>
+                      {new Date(assignment.assignedAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center' }}>
+                      {assignment.downloaded ? '✅' : '❌'}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      <span style={{ 
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        backgroundColor: assignment.status === 'submitted' ? '#28a745' : assignment.downloaded ? '#ffc107' : '#dc3545',
+                        color: 'white',
+                        fontSize: '11px'
+                      }}>
+                        {assignment.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px', fontSize: '12px' }}>
+                      {assignment.submitted ? (
+                        <div>
+                          <div>{new Date(assignment.submittedAt).toLocaleDateString()}</div>
+                          <div style={{ color: '#666', fontSize: '10px' }}>{assignment.submittedFileName}</div>
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      <button
+                        onClick={() => downloadInstructorVersion(assignment)}
+                        style={{ 
+                          padding: '4px 8px', 
+                          backgroundColor: '#17a2b8', 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '3px',
+                          fontSize: '11px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📋 Instructor Version
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {getClassAssignments().length === 0 && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              color: '#666',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px'
+            }}>
+              No students assigned tasks in this class yet.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      {view === 'student' ? <StudentView /> : <ProfessorView />}
+    </div>
+  );
+};
+
+export default CriticalThinkingApp;, fontWeight: 'bold' }}>{classInfo.name}</td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      {new Date(classInfo.startDate).toLocaleDateString()}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      {new Date(classInfo.endDate).toLocaleDateString()}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      <span style={{ 
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        backgroundColor: isClassActive(classInfo.name) ? '#28a745' : '#6c757d',
+                        color: 'white',
+                        fontSize: '11px'
+                      }}>
+                        {isClassActive(classInfo.name) ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      {Object.values(assignments).filter(a => a.className === classInfo.name).length}
+                    </td>
+                    <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                      <button
+                        onClick={() => setSelectedClass(classInfo.name)}
+                        style={{ 
+                          padding: '4px 8px', 
+                          backgroundColor: '#007bff', 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '3px',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          marginRight: '5px'
+                        }}
+                      >
+                        Monitor
+                      </button>
+                      <button
+                        onClick={() => deleteClass(classInfo.name)}
+                        style={{ 
+                          padding: '4px 8px', 
+                          backgroundColor: '#dc3545', 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '3px',
+                          fontSize: '11px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Class Monitoring */}
+      {selectedClass && (
+        <div>
+          <h3 style={{ color: '#333', marginBottom: '15px' }}>
+            Monitoring Class: {selectedClass} 
+            <span style={{ fontSize: '16px', color: '#666', marginLeft: '10px' }}>
+              ({getClassAssignments().length} students)
+            </span>
+            <button
+              onClick={() => setSelectedClass('')}
+              style={{ 
+                marginLeft: '15px',
+                padding: '4px 8px', 
+                backgroundColor: '#6c757d', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '3px',
+                fontSize: '12px',
+                cursor: 'pointer'
+              }}
+            >
+              Close
+            </button>
+          </h3>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse', 
+              backgroundColor: 'white',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8f9fa' }}>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Student Name</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Email</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Task ID</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Assigned</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Downloaded</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Status</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Submitted</th>
+                  <th style={{ border: '1px solid #ddd', padding: '12px', textAlign: 'left' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getClassAssignments().map((assignment, index) => (
+                  <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                    <td style={{ border: '1px solid #ddd', padding: '10px'
+    </script>
+</body>
+</html>
