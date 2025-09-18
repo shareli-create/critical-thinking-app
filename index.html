@@ -8,16 +8,13 @@
       <style>
           body { margin: 0; font-family: Arial, sans-serif; background-color: #f5f5f5; }
           .container { min-height: 100vh; padding: 20px; max-width: 600px; margin: 0 auto; }
-          .card { background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px;
-  margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .card { background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px
+  4px rgba(0,0,0,0.1); }
           .form-group { margin-bottom: 15px; }
           .form-label { display: block; margin-bottom: 5px; font-weight: bold; }
-          .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size:
-  14px; box-sizing: border-box; }
-          .form-input:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px
-  rgba(0,123,255,0.25); }
-          .btn { padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
-  margin-right: 10px; }
+          .form-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+          .form-input:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); }
+          .btn { padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 10px; }
           .btn-primary { background-color: #007bff; color: white; }
           .btn-success { background-color: #28a745; color: white; }
           .btn-danger { background-color: #dc3545; color: white; }
@@ -28,11 +25,10 @@
           .alert-success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
           .alert-warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
           .alert-info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
-          .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.5); z-index: 1000; }
+          .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index:
+  1000; }
           .modal.show { display: flex; align-items: center; justify-content: center; }
-          .modal-content { background-color: white; padding: 30px; border-radius: 8px; min-width: 300px;
-  max-width: 90%; }
+          .modal-content { background-color: white; padding: 30px; border-radius: 8px; min-width: 300px; max-width: 90%; }
           .table { width: 100%; border-collapse: collapse; background-color: white; margin-top: 20px; }
           .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
           .table th { background-color: #f8f9fa; font-weight: bold; }
@@ -57,7 +53,7 @@
           <div id="studentView">
               <h1>Critical Thinking Task System</h1>
               <div class="text-small mb-3">
-                  Press Ctrl+Shift+P for instructor access
+                  Press Ctrl+Shift+I for instructor access
               </div>
 
               <!-- Get Task Form -->
@@ -65,24 +61,20 @@
                   <h3>Get Your Task Assignment</h3>
                   <div class="form-group">
                       <label class="form-label">Full Name:</label>
-                      <input type="text" id="studentName" class="form-input" placeholder="Enter your full
-  name">
+                      <input type="text" id="studentName" class="form-input" placeholder="Enter your full name">
                   </div>
                   <div class="form-group">
                       <label class="form-label">Email:</label>
-                      <input type="email" id="studentEmail" class="form-input" placeholder="Enter your email
-   address">
+                      <input type="email" id="studentEmail" class="form-input" placeholder="Enter your email address">
                   </div>
                   <div class="form-group">
                       <label class="form-label">Class Name:</label>
                       <select id="className" class="form-input">
                           <option value="">Select your class...</option>
                       </select>
-                      <div id="noClassesMsg" class="text-small mt-3 hidden">No active classes available.
-  Contact your professor.</div>
+                      <div id="noClassesMsg" class="text-small mt-3 hidden">No active classes available. Contact your professor.</div>
                   </div>
-                  <button onclick="getStudentTask()" class="btn btn-primary" id="getTaskBtn">Get My
-  Task</button>
+                  <button onclick="getStudentTask()" class="btn btn-primary" id="getTaskBtn">Get My Task</button>
               </div>
 
               <!-- Task Assignment Display -->
@@ -94,8 +86,7 @@
 
                   <!-- Download Section -->
                   <div id="downloadSection" class="mb-3">
-                      <button onclick="downloadTask()" class="btn btn-success">📥 Download Task
-  File</button>
+                      <button onclick="downloadTask()" class="btn btn-success">📥 Download Task File</button>
                   </div>
 
                   <!-- Upload Section -->
@@ -103,20 +94,17 @@
                       <h4>Submit Completed Task</h4>
                       <div class="form-group">
                           <label class="form-label">Upload your completed task file:</label>
-                          <input type="file" id="fileUpload" class="form-input"
-  accept=".html,.pdf,.doc,.docx,.zip">
+                          <input type="file" id="fileUpload" class="form-input" accept=".html,.pdf,.doc,.docx,.zip">
                           <div id="fileInfo" class="text-small mt-3"></div>
                       </div>
-                      <button onclick="submitTask()" class="btn btn-primary" id="submitBtn" disabled>📤
-  Submit Task</button>
+                      <button onclick="submitTask()" class="btn btn-primary" id="submitBtn" disabled>📤 Submit Task</button>
                   </div>
 
                   <!-- Completed Section -->
                   <div id="completedSection" class="alert alert-info hidden">
                       <h4>✅ Task Submitted</h4>
                       <div id="submissionDetails"></div>
-                      <p style="font-style: italic;">Your task has been successfully submitted. Thank
-  you!</p>
+                      <p style="font-style: italic;">Your task has been successfully submitted. Thank you!</p>
                   </div>
               </div>
           </div>
@@ -125,16 +113,14 @@
           <div id="professorView" class="hidden">
               <h1>Professor Dashboard</h1>
               <button onclick="logoutProfessor()" class="btn btn-danger">Logout</button>
-              <button onclick="toggleCreateClass()" class="btn btn-success" id="createClassToggle">Create
-  New Class</button>
+              <button onclick="toggleCreateClass()" class="btn btn-success" id="createClassToggle">Create New Class</button>
 
               <!-- Create Class Form -->
               <div id="createClassSection" class="card hidden">
                   <h3>Create New Class</h3>
                   <div class="form-group">
                       <label class="form-label">Class Name:</label>
-                      <input type="text" id="newClassName" class="form-input" placeholder="e.g., Business
-  Ethics 2025">
+                      <input type="text" id="newClassName" class="form-input" placeholder="e.g., Business Ethics 2025">
                   </div>
                   <div class="grid-2">
                       <div class="form-group">
@@ -169,8 +155,7 @@
           <div class="modal-content text-center">
               <h3>Professor Login</h3>
               <div class="form-group">
-                  <input type="password" id="professorPassword" class="form-input" placeholder="Enter
-  professor password">
+                  <input type="password" id="professorPassword" class="form-input" placeholder="Enter professor password">
               </div>
               <button onclick="loginProfessor()" class="btn btn-primary">Login</button>
               <button onclick="closeProfessorModal()" class="btn btn-secondary">Cancel</button>
@@ -184,12 +169,9 @@
           let classes = {};
           let currentTask = null;
           let selectedClass = '';
-          // IMPORTANT: Change this password to a secure, private password.
           const PROFESSOR_PASSWORD = 'Simba@#1903';
-          // IMPORTANT: Replace with your own Google Apps Script URL.
-          // This script is needed to handle file downloads from your Google Drive.
-          // See the project's README for instructions on setting up the Apps Script.
-          const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3DNt7FaIi7Wq_I6IkeIvEJQ4XQzGvYk1V9GSvk6hH7I0AZAnkIolb-EhlKyV9UuHy-Q/exec';
+          const APPS_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbx3DNt7FaIi7Wq_I6IkeIvEJQ4XQzGvYk1V9GSvk6hH7I0AZAnkIolb-EhlKyV9UuHy-Q/exec';
 
           // Load data on page load
           window.onload = function() {
@@ -197,9 +179,9 @@
               updateClassDropdown();
               updateClassManagement();
 
-              // Add keyboard shortcut
+              // Add keyboard shortcut for professor login
               document.addEventListener('keydown', function(e) {
-                  if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                  if (e.ctrlKey && e.shiftKey && e.code === 'KeyI') {
                       e.preventDefault();
                       showProfessorModal();
                   }
@@ -407,8 +389,7 @@
 
                   const submissionDetails = document.getElementById('submissionDetails');
                   submissionDetails.innerHTML = `
-                      <p><strong>Submitted:</strong> ${new
-  Date(currentTask.submittedAt).toLocaleString()}</p>
+                      <p><strong>Submitted:</strong> ${new Date(currentTask.submittedAt).toLocaleString()}</p>
                       <p><strong>File:</strong> ${currentTask.submittedFileName}</p>
                   `;
               } else if (currentTask.downloaded) {
@@ -599,8 +580,7 @@
               const classNames = Object.keys(classes);
 
               if (classNames.length === 0) {
-                  tableDiv.innerHTML = '<p class="text-center">No classes created yet. Create your first
-  class above.</p>';
+                  tableDiv.innerHTML = '<p class="text-center">No classes created yet. Create your first class above.</p>';
                   return;
               }
 
@@ -619,22 +599,21 @@
               classNames.forEach(className => {
                   const classInfo = classes[className];
                   const isActive = isClassActive(className);
-                  const studentCount = Object.values(assignments).filter(a => a.className ===
-  className).length;
+                  const studentCount = Object.values(assignments).filter(a => a.className === className).length;
 
                   html += `
                       <tr>
                           <td><strong>${className}</strong></td>
                           <td>${new Date(classInfo.startDate).toLocaleDateString()}</td>
                           <td>${new Date(classInfo.endDate).toLocaleDateString()}</td>
-                          <td><span class="status-badge ${isActive ? 'status-submitted' :
-  'status-assigned'}">${isActive ? 'ACTIVE' : 'INACTIVE'}</span></td>
+                          <td><span class="status-badge ${isActive ? 'status-submitted' : 'status-assigned'}">${isActive ? 'ACTIVE' :
+  'INACTIVE'}</span></td>
                           <td>${studentCount}</td>
                           <td>
-                              <button onclick="monitorClass('${className}')" class="btn btn-primary"
-  style="padding: 4px 8px; font-size: 11px;">Monitor</button>
-                              <button onclick="deleteClass('${className}')" class="btn btn-danger"
-  style="padding: 4px 8px; font-size: 11px;">Delete</button>
+                              <button onclick="monitorClass('${className}')" class="btn btn-primary" style="padding: 4px 8px; font-size:
+  11px;">Monitor</button>
+                              <button onclick="deleteClass('${className}')" class="btn btn-danger" style="padding: 4px 8px; font-size:
+  11px;">Delete</button>
                           </td>
                       </tr>
                   `;
@@ -646,11 +625,9 @@
 
           function monitorClass(className) {
               selectedClass = className;
-              const classAssignments = Object.values(assignments).filter(assignment => assignment.className
-  === className);
+              const classAssignments = Object.values(assignments).filter(assignment => assignment.className === className);
 
-              document.getElementById('monitoringTitle').textContent = Monitoring Class: ${className}
-  (${classAssignments.length} students);
+              document.getElementById('monitoringTitle').textContent = Monitoring Class: ${className} (${classAssignments.length} students);
               document.getElementById('classMonitoring').classList.remove('hidden');
 
               let html = '';
@@ -677,21 +654,18 @@
                               <td>${assignment.studentName}</td>
                               <td style="font-size: 10px;">${assignment.studentEmail}</td>
                               <td><strong>${assignment.taskId}</strong></td>
-                              <td style="font-size: 10px;">${new
-  Date(assignment.assignedAt).toLocaleDateString()}</td>
+                              <td style="font-size: 10px;">${new Date(assignment.assignedAt).toLocaleDateString()}</td>
                               <td class="text-center">${assignment.downloaded ? '✅' : '❌'}</td>
-                              <td><span class="status-badge
-  status-${assignment.status}">${assignment.status.toUpperCase()}</span></td>
+                              <td><span class="status-badge status-${assignment.status}">${assignment.status.toUpperCase()}</span></td>
                               <td style="font-size: 10px;">
                                   ${assignment.submitted ?
-                                      ${new Date(assignment.submittedAt).toLocaleDateString()}<br><span
-  style="color: #666;">${assignment.submittedFileName}</span> :
+                                      ${new Date(assignment.submittedAt).toLocaleDateString()}<br><span style="color:
+  #666;">${assignment.submittedFileName}</span> :
                                       '-'
                                   }
                               </td>
                               <td>
-                                  <button
-  onclick="downloadInstructorVersion('${assignment.instructorFile}')" class="btn btn-primary"
+                                  <button onclick="downloadInstructorVersion('${assignment.instructorFile}')" class="btn btn-primary"
   style="padding: 2px 6px; font-size: 10px;">📋 Instructor</button>
                               </td>
                           </tr>
@@ -716,3 +690,4 @@
       </script>
   </body>
   </html>
+  `
