@@ -167,13 +167,15 @@
         let classes = {};
         let currentTask = null;
         let selectedClass = '';
+        let availableTaskFiles = []; // Declare the variable to hold loaded files
         const PROFESSOR_PASSWORD = 'admin123'; // Change this!
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3DNt7FaIi7Wq_I6IkeIvEJQ4XQzGvYk1V9GSvk6hH7I0AZAnkIolb-EhlKyV9UuHy-Q/exec';
+        // ✅✅✅ UPDATED APPS SCRIPT URL ✅✅✅
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyweRcyp1jqqsm-bcwHnHgcDi4On_9wxax2MCp82TD8_ikB3vhO4vjKDCfYR8yHpc49tg/exec';
 
         // Load data on page load
         window.onload = function() {
             loadData();
-            loadAvailableTaskFiles();
+            loadAvailableTaskFiles(); // Load files from Drive
             updateClassDropdown();
             updateClassManagement();
             
@@ -327,27 +329,21 @@
                 return;
             }
 
-            // Generate available tasks
-            const availableTasks = [];
-            for (let i = 1; i <= 50; i++) {
-                const taskNum = i.toString().padStart(3, '0');
-                availableTasks.push({
-                    studentFile: `Task${taskNum}-Student.html`,
-                    instructorFile: `Task${taskNum}-Instructor.html`,
-                    taskNumber: taskNum,
-                    taskId: `Task${taskNum}`
-                });
+            // Use loaded files from Drive instead of hardcoded list
+            if (availableTaskFiles.length === 0) {
+                alert('No task files are available. Please contact your instructor.');
+                return;
             }
 
             // Get used tasks for this class
             const classAssignments = Object.values(assignments).filter(assignment => 
                 assignment.className === className
             );
-            const usedTaskNumbers = classAssignments.map(assignment => assignment.taskNumber);
+            const usedTaskFiles = classAssignments.map(assignment => assignment.studentFile);
 
             // Filter available tasks
-            const unassignedTasks = availableTasks.filter(task => 
-                !usedTaskNumbers.includes(task.taskNumber)
+            const unassignedTasks = availableTaskFiles.filter(taskFile => 
+                !usedTaskFiles.includes(taskFile)
             );
 
             if (unassignedTasks.length === 0) {
@@ -358,16 +354,21 @@
             // Assign task based on email hash
             const hash = hashString(studentEmail);
             const taskIndex = hash % unassignedTasks.length;
-            const selectedTask = unassignedTasks[taskIndex];
+            const selectedTaskFile = unassignedTasks[taskIndex];
+
+            // Extract task number/ID from filename (e.g., "Task001-Student.html" -> "001")
+            const taskMatch = selectedTaskFile.match(/^Task(\d+)-Student\.html$/i);
+            const taskNumber = taskMatch ? taskMatch[1] : 'Unknown';
+            const taskId = taskMatch ? `Task${taskNumber}` : selectedTaskFile;
 
             const assignment = {
                 studentName: studentName,
                 studentEmail: studentEmail,
                 className: className,
-                taskNumber: selectedTask.taskNumber,
-                taskId: selectedTask.taskId,
-                studentFile: selectedTask.studentFile,
-                instructorFile: selectedTask.instructorFile,
+                taskNumber: taskNumber,
+                taskId: taskId,
+                studentFile: selectedTaskFile,
+                instructorFile: selectedTaskFile.replace('-Student.html', '-Instructor.html'),
                 assignedAt: new Date().toISOString(),
                 status: 'assigned',
                 downloaded: false,
@@ -422,7 +423,7 @@
             saveData();
 
             // Download from Google Drive via Apps Script
-            const downloadUrl = `${APPS_SCRIPT_URL}?action=download&file=${currentTask.studentFile}`;
+            const downloadUrl = `${APPS_SCRIPT_URL}?action=download&file=${encodeURIComponent(currentTask.studentFile)}`;
             
             // Open download in new tab
             window.open(downloadUrl, '_blank');
@@ -693,7 +694,7 @@
         }
 
         function downloadInstructorVersion(fileName) {
-            const downloadUrl = `${APPS_SCRIPT_URL}?action=download&file=${fileName}`;
+            const downloadUrl = `${APPS_SCRIPT_URL}?action=download&file=${encodeURIComponent(fileName)}`;
             window.open(downloadUrl, '_blank');
         }
     </script>
